@@ -1,6 +1,9 @@
 package main
 
-import pb "goku/entry"
+import (
+	pb "goku/entry"
+	"os"
+)
 
 func replayEntries(entries []*pb.Entry) map[string]string {
 	items := make(map[string]string)
@@ -17,4 +20,14 @@ func replayEntries(entries []*pb.Entry) map[string]string {
 	}
 
 	return items
+}
+
+func createFile(fl string) (f *os.File, err error) {
+	f, err = os.OpenFile(fl, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0666)
+	return
+}
+
+func openFile(fl string) (f *os.File, err error) {
+	f, err = os.OpenFile(fl, os.O_APPEND|os.O_WRONLY, 0666)
+	return
 }
