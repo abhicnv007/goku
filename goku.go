@@ -8,35 +8,43 @@ import (
 
 // Goku is the core data strcture of the library
 type Goku struct {
-	items   map[string]string
-	logName string
-	logPtr  *os.File
+	items  map[string]string
+	logPtr *os.File
+	dbPath string
 }
 
 // New creates a new instance of Goku
-func New() Goku {
-	logName := "goku_data"
-	_, err := os.Stat(logName)
+func New(dbPath string) Goku {
+	_, err := os.Stat(dbPath)
 	if os.IsNotExist(err) {
-		f, err := os.OpenFile(logName, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0666)
+		f, err := createFile(dbPath)
 		if err != nil {
-			log.Fatalln("Failed to create data file", logName, "Got error", err)
+			log.Fatalln("Failed to create data file", dbPath, "Got error", err)
 		}
-		return Goku{items: make(map[string]string), logName: logName, logPtr: f}
+		return Goku{items: make(map[string]string), dbPath: dbPath, logPtr: f}
 	}
 
-	entries := readEntry(logName)
+	entries := readEntry(dbPath)
 
-	f, err := os.OpenFile(logName, os.O_APPEND|os.O_WRONLY, 0666)
+	f, err := openFile(dbPath)
 	if err != nil {
-		log.Fatalln("Failed to open file data file", logName, "Got error", err)
+		log.Fatalln("Failed to open file data file", dbPath, "Got error", err)
 	}
-	return Goku{items: replayEntries(entries), logName: logName, logPtr: f}
+	return Goku{items: replayEntries(entries), dbPath: dbPath, logPtr: f}
 
 }
 
 // Add a key value pair to the Goku instance
 func (g *Goku) Add(key string, value string) {
+
+	if g.logPtr == nil {
+		f, err := createFile(g.dbPath)
+		if err != nil {
+			log.Fatalln("Failed to create data file", g.dbPath, "Got error", err)
+		}
+		g.logPtr = f
+	}
+
 	g.items[key] = value
 
 	writeEntry(&pb.Entry{
@@ -64,15 +72,14 @@ func (g *Goku) Close() {
 
 // Clear deletes all elements and removes its log from disk
 func (g *Goku) Clear() {
+	// close the file pointer
 	g.logPtr.Close()
-	if err := os.Remove(g.logName); err != nil {
-		log.Fatal("Could not remove file log file", g.logName, "; got error:", err)
-	}
-	f, err := os.OpenFile(g.logName, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0666)
-	if err != nil {
-		log.Fatalln("Failed to create data file", g.logName, "Got error", err)
+	g.logPtr = nil
+
+	// remove the contents of the file
+	if err := os.Remove(g.dbPath); err != nil {
+		log.Fatal("Could not remove file log file", g.dbPath, "; got error:", err)
 	}
 
-	g.logPtr = f
 	g.items = make(map[string]string)
 }
