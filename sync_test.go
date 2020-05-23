@@ -10,23 +10,23 @@ func TestWriteEntry(t *testing.T) {
 	fname := "sync_test_file"
 
 	f, _ := os.Create(fname)
-	f.Close()
 
 	e := pb.Entry{
 		Key:   "Hello",
 		Value: "World",
 		Type:  pb.Entry_INSERT,
 	}
-	writeEntry(&e, fname)
+	writeEntry(&e, f)
 
 	e = pb.Entry{
 		Key:   "Hi",
 		Value: "World",
 		Type:  pb.Entry_INSERT,
 	}
-	writeEntry(&e, fname)
+	writeEntry(&e, f)
 
 	//clean up
+	f.Close()
 	os.Remove(fname)
 }
 
@@ -34,21 +34,20 @@ func TestReadEntry(t *testing.T) {
 	fname := "sync_test_file"
 
 	f, _ := os.Create(fname)
-	f.Close()
 
 	e := pb.Entry{
 		Key:   "Hello",
 		Value: "World",
 		Type:  pb.Entry_INSERT,
 	}
-	writeEntry(&e, fname)
+	writeEntry(&e, f)
 
 	e = pb.Entry{
 		Key:   "Hi",
 		Value: "World",
 		Type:  pb.Entry_INSERT,
 	}
-	writeEntry(&e, fname)
+	writeEntry(&e, f)
 
 	entries := readEntry(fname)
 	if len(entries) != 2 {
@@ -56,5 +55,6 @@ func TestReadEntry(t *testing.T) {
 	}
 
 	//clean up
+	f.Close()
 	os.Remove(fname)
 }
