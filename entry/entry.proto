@@ -1,0 +1,18 @@
+syntax = "proto3";
+package entry;
+
+// import "google/protobuf/timestamp.proto";
+
+message Entry {
+    string key = 1;
+    int32 id = 2;  // Unique ID number for this person.
+    string value = 3;
+    
+    enum EntryType {
+      INSERT = 0;
+      UPDATE = 1;
+      DELETE = 2;
+    }
+
+    EntryType type = 4;
+}
