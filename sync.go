@@ -11,7 +11,7 @@ import (
 	pb "goku/entry"
 )
 
-func writeEntry(entry *pb.Entry, fname string) {
+func writeEntry(entry *pb.Entry, f *os.File) {
 	// marshal the entry to bytes
 	out, err := proto.Marshal(entry)
 	if err != nil {
@@ -21,12 +21,6 @@ func writeEntry(entry *pb.Entry, fname string) {
 	// get the size of the entry
 	sz := make([]byte, 4)
 	binary.LittleEndian.PutUint32(sz, uint32(len(out)))
-
-	f, err := os.OpenFile(fname, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
-	if err != nil {
-		log.Fatalln("Failed to open file:", err)
-	}
-	defer f.Close()
 
 	// write the size first
 	if _, err := f.Write(sz); err != nil {
