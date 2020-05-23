@@ -5,8 +5,22 @@ import (
 	"testing"
 )
 
+func TestNew(t *testing.T) {
+	g := New()
+	g.Add("Q", "there")
+	g.Add("W", "here")
+	g.Add("E", "everywhere")
+	g.Close()
+
+	g = New()
+	if got := g.Count(); got != 3 {
+		t.Errorf("Goku New; expected 3, got %d", got)
+	}
+	g.Clear()
+}
+
 func TestAdd(t *testing.T) {
-	g := New("")
+	g := New()
 	g.Add("Q", "there")
 	g.Add("W", "here")
 	g.Add("E", "everywhere")
@@ -18,10 +32,12 @@ func TestAdd(t *testing.T) {
 	if got := g.Count(); got != 3 {
 		t.Errorf("Goku Add = %d; want 3", got)
 	}
+
+	g.Clear()
 }
 
 func TestGet(t *testing.T) {
-	g := New("")
+	g := New()
 	keys := []string{"A", "B", "C", "D"}
 	values := []string{"1", "2", "3", "4"}
 
@@ -35,6 +51,25 @@ func TestGet(t *testing.T) {
 			t.Errorf("Goku Get = %s, want %s, got %s", k, values[i], v)
 		}
 	}
+
+	g.Clear()
+}
+
+func TestClear(t *testing.T) {
+	g := New()
+	keys := []string{"A", "B", "C", "D"}
+	values := []string{"1", "2", "3", "4"}
+
+	for i, k := range keys {
+		g.Add(k, values[i])
+	}
+
+	g.Clear()
+
+	if c := g.Count(); c != 0 {
+		t.Errorf("Goku clear, expected 0 elements after clear, got %d", c)
+	}
+
 }
 
 const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -48,21 +83,22 @@ func RandStringBytes(n int) string {
 }
 
 func BenchmarkAdd(b *testing.B) {
-	g := New("")
+	g := New()
 	// create some random strings to be used as keys and values
 	randStrs := make([][]string, 0, b.N)
 	for i := 0; i < b.N; i++ {
-		randStrs = append(randStrs, []string{RandStringBytes(10), RandStringBytes(100)})
+		randStrs = append(randStrs, []string{RandStringBytes(10), RandStringBytes(10_000)})
 	}
 	// reset timer and benchmark add
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		g.Add(randStrs[i][0], randStrs[i][1])
 	}
+	g.Clear()
 }
 
 func BenchmarkGet(b *testing.B) {
-	g := New("")
+	g := New()
 	// create some random strings to be used as keys and values
 	randStrs := make([][]string, 0, b.N)
 	for i := 0; i < b.N; i++ {
@@ -75,4 +111,5 @@ func BenchmarkGet(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		g.Get(randStrs[i][0])
 	}
+	g.Clear()
 }
