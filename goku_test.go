@@ -2,17 +2,25 @@ package main
 
 import (
 	"math/rand"
+	"os"
 	"testing"
 )
 
 func TestNew(t *testing.T) {
-	g := New()
+	dbPath := ".goku"
+	g := New(dbPath)
 	g.Add("Q", "there")
 	g.Add("W", "here")
 	g.Add("E", "everywhere")
 	g.Close()
 
-	g = New()
+	_, err := os.Stat(dbPath)
+	// file is supposed to exist
+	if os.IsNotExist(err) {
+		t.Errorf("Goku new, file not present after close")
+	}
+
+	g = New(dbPath)
 	if got := g.Count(); got != 3 {
 		t.Errorf("Goku New; expected 3, got %d", got)
 	}
@@ -20,7 +28,8 @@ func TestNew(t *testing.T) {
 }
 
 func TestAdd(t *testing.T) {
-	g := New()
+	dbPath := ".goku"
+	g := New(dbPath)
 	g.Add("Q", "there")
 	g.Add("W", "here")
 	g.Add("E", "everywhere")
@@ -37,7 +46,8 @@ func TestAdd(t *testing.T) {
 }
 
 func TestGet(t *testing.T) {
-	g := New()
+	dbPath := ".goku"
+	g := New(dbPath)
 	keys := []string{"A", "B", "C", "D"}
 	values := []string{"1", "2", "3", "4"}
 
@@ -56,7 +66,8 @@ func TestGet(t *testing.T) {
 }
 
 func TestClear(t *testing.T) {
-	g := New()
+	dbPath := ".goku"
+	g := New(dbPath)
 	keys := []string{"A", "B", "C", "D"}
 	values := []string{"1", "2", "3", "4"}
 
@@ -69,6 +80,23 @@ func TestClear(t *testing.T) {
 	if c := g.Count(); c != 0 {
 		t.Errorf("Goku clear, expected 0 elements after clear, got %d", c)
 	}
+	_, err := os.Stat(dbPath)
+	// file is not supposed to exist
+	if !os.IsNotExist(err) {
+		t.Errorf("Goku clear, file not cleared")
+	}
+
+	keys = []string{"A", "B", "C", "D"}
+	values = []string{"1", "2", "3", "4"}
+
+	for i, k := range keys {
+		g.Add(k, values[i])
+	}
+
+	if c := g.Count(); c != 4 {
+		t.Errorf("Goku clear, expected 4 elements after insertion, got %d", c)
+	}
+	g.Clear()
 
 }
 
@@ -83,7 +111,8 @@ func RandStringBytes(n int) string {
 }
 
 func BenchmarkAdd(b *testing.B) {
-	g := New()
+	dbPath := ".goku"
+	g := New(dbPath)
 	// create some random strings to be used as keys and values
 	randStrs := make([][]string, 0, b.N)
 	for i := 0; i < b.N; i++ {
@@ -98,7 +127,8 @@ func BenchmarkAdd(b *testing.B) {
 }
 
 func BenchmarkGet(b *testing.B) {
-	g := New()
+	dbPath := ".goku"
+	g := New(dbPath)
 	// create some random strings to be used as keys and values
 	randStrs := make([][]string, 0, b.N)
 	for i := 0; i < b.N; i++ {
