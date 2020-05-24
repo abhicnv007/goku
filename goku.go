@@ -79,7 +79,9 @@ func (g *Goku) Count() int {
 //	g := goku.New(".db")
 //	defer g.Close()
 func (g *Goku) Close() {
-	g.logPtr.Close()
+	if g.logPtr != nil {
+		g.logPtr.Close()
+	}
 }
 
 // Clear deletes all elements and removes the log from disk.
