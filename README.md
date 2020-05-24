@@ -10,3 +10,4 @@ Goku is a library written in Go to create a simple in-memory datastore that is p
 1. Add a usage section
 2. Test in multithreaded applications
 3. Allow for dump and restore
+4. Test file corruption
