@@ -1,19 +1,27 @@
+// Package goku is a library that implements an in memory but persistant datastore
 package goku
 
 import (
-	pb "github.com/abhicnv007/goku/entry"
 	"log"
 	"os"
+
+	pb "github.com/abhicnv007/goku/entry"
 )
 
-// Goku is the core data strcture of the library
+// Goku is the core data strcture of the library.
+// It stores all the key value pairs and pointers to the log file
 type Goku struct {
 	items  map[string]string
 	logPtr *os.File
 	dbPath string
 }
 
-// New creates a new instance of Goku
+// New creates a new instance of Goku. Each instance has it's own private store.
+// It creates a append log at the path given, which contains all operations performed on Goku allowing recovery of
+// data in case of program crash.
+//
+// Example:
+//	g := goku.New(".goku_data")
 func New(dbPath string) Goku {
 	_, err := os.Stat(dbPath)
 	if os.IsNotExist(err) {
@@ -34,7 +42,7 @@ func New(dbPath string) Goku {
 
 }
 
-// Add a key value pair to the Goku instance
+// Add a key value pair to the Goku instance and also persists the operation to disk.
 func (g *Goku) Add(key string, value string) {
 
 	if g.logPtr == nil {
@@ -66,14 +74,22 @@ func (g *Goku) Count() int {
 }
 
 // Close all file handlers and free up memory
+//
+// Example:
+//	g := goku.New(".db")
+//	defer g.Close()
 func (g *Goku) Close() {
 	g.logPtr.Close()
 }
 
-// Clear deletes all elements and removes its log from disk
+// Clear deletes all elements and removes the log from disk.
+//
+// Example:
+//	g := goku.New(".db")
+//	defer g.Clear()
 func (g *Goku) Clear() {
 	// close the file pointer
-	g.logPtr.Close()
+	g.Close()
 	g.logPtr = nil
 
 	// remove the contents of the file
