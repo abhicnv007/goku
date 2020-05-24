@@ -24,8 +24,6 @@ func main() {
         // use val
         fmt.Println(val) // Output: bar
     } 
-
-    
 }
 ```
 
