@@ -9,10 +9,11 @@ import (
 func TestNew(t *testing.T) {
 	dbPath := ".goku"
 	g := New(dbPath)
+	defer g.Clear()
+
 	g.Add("Q", "there")
 	g.Add("W", "here")
 	g.Add("E", "everywhere")
-	g.Close()
 
 	_, err := os.Stat(dbPath)
 	// file is supposed to exist
@@ -24,12 +25,13 @@ func TestNew(t *testing.T) {
 	if got := g.Count(); got != 3 {
 		t.Errorf("Goku New; expected 3, got %d", got)
 	}
-	g.Clear()
 }
 
 func TestAdd(t *testing.T) {
 	dbPath := ".goku"
 	g := New(dbPath)
+	defer g.Clear()
+
 	g.Add("Q", "there")
 	g.Add("W", "here")
 	g.Add("E", "everywhere")
@@ -41,13 +43,13 @@ func TestAdd(t *testing.T) {
 	if got := g.Count(); got != 3 {
 		t.Errorf("Goku Add = %d; want 3", got)
 	}
-
-	g.Clear()
 }
 
 func TestGet(t *testing.T) {
 	dbPath := ".goku"
 	g := New(dbPath)
+	defer g.Clear()
+
 	keys := []string{"A", "B", "C", "D"}
 	values := []string{"1", "2", "3", "4"}
 
@@ -61,8 +63,6 @@ func TestGet(t *testing.T) {
 			t.Errorf("Goku Get = %s, want %s, got %s", k, values[i], v)
 		}
 	}
-
-	g.Clear()
 }
 
 func TestClear(t *testing.T) {
@@ -113,6 +113,7 @@ func RandStringBytes(n int) string {
 func BenchmarkAdd(b *testing.B) {
 	dbPath := ".goku"
 	g := New(dbPath)
+	defer g.Clear()
 	// create some random strings to be used as keys and values
 	randStrs := make([][]string, 0, b.N)
 	for i := 0; i < b.N; i++ {
@@ -123,12 +124,12 @@ func BenchmarkAdd(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		g.Add(randStrs[i][0], randStrs[i][1])
 	}
-	g.Clear()
 }
 
 func BenchmarkGet(b *testing.B) {
 	dbPath := ".goku"
 	g := New(dbPath)
+	defer g.Clear()
 	// create some random strings to be used as keys and values
 	randStrs := make([][]string, 0, b.N)
 	for i := 0; i < b.N; i++ {
@@ -141,5 +142,4 @@ func BenchmarkGet(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		g.Get(randStrs[i][0])
 	}
-	g.Clear()
 }
