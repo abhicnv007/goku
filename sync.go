@@ -8,7 +8,7 @@ import (
 
 	"google.golang.org/protobuf/proto"
 
-	pb "goku/entry"
+	pb "github.com/abhicnv007/goku/entry"
 )
 
 func writeEntry(entry *pb.Entry, f *os.File) {
