@@ -1,4 +1,4 @@
-module goku
+module github.com/abhicnv007/goku
 
 go 1.14
 

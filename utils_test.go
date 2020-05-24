@@ -1,7 +1,7 @@
 package main
 
 import (
-	pb "goku/entry"
+	pb "github.com/abhicnv007/goku/entry"
 	"testing"
 )
 
