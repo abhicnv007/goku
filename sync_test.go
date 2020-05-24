@@ -1,4 +1,4 @@
-package main
+package goku
 
 import (
 	pb "github.com/abhicnv007/goku/entry"
