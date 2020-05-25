@@ -4,6 +4,7 @@ package goku
 import (
 	"log"
 	"os"
+	"sync"
 
 	pb "github.com/abhicnv007/goku/entry"
 	"github.com/abhicnv007/goku/filelock"
@@ -12,9 +13,10 @@ import (
 // Goku is the core data strcture of the library.
 // It stores all the key value pairs and pointers to the log file
 type Goku struct {
-	items  map[string]string
-	logPtr *os.File
-	dbPath string
+	items     map[string]string
+	logPtr    *os.File
+	dbPath    string
+	itemsLock sync.RWMutex
 }
 
 // New creates a new instance of Goku. Each instance has it's own private store.
@@ -47,24 +49,33 @@ func New(dbPath string) Goku {
 // Add a key value pair to the Goku instance and also persists the operation to disk.
 func (g *Goku) Add(key string, value string) {
 
-	g.items[key] = value
+	g.itemsLock.RLock()
 
+	g.items[key] = value
 	writeEntry(&pb.Entry{
 		Key:   key,
 		Value: value,
 		Type:  pb.Entry_INSERT,
 	}, g.logPtr)
+
+	g.itemsLock.RUnlock()
 }
 
 // Get the value saved for a key
 func (g *Goku) Get(key string) (val string, ok bool) {
+	g.itemsLock.RLock()
 	val, ok = g.items[key]
+	g.itemsLock.RUnlock()
 	return
 }
 
 // Count returns the number of items saved
 func (g *Goku) Count() int {
-	return len(g.items)
+	g.itemsLock.RLock()
+	l := len(g.items)
+	g.itemsLock.RUnlock()
+
+	return l
 }
 
 // Close file handlers and remove lock files
@@ -73,6 +84,8 @@ func (g *Goku) Count() int {
 //	g := goku.New(".db")
 //	defer g.Close()
 func (g *Goku) Close() {
+	g.itemsLock.Lock()
+
 	g.logPtr.Close()
 
 	// if there are no items, go ahead and delete the datafile
@@ -83,6 +96,8 @@ func (g *Goku) Close() {
 		filelock.Release(g.dbPath)
 	}
 
+	g.itemsLock.Unlock()
+
 }
 
 // Clear deletes all elements and truncates the log from disk.
@@ -92,10 +107,12 @@ func (g *Goku) Close() {
 //	defer g.Clear()
 func (g *Goku) Clear() {
 
+	g.itemsLock.Lock()
 	// truncate the file
 	g.logPtr.Truncate(0)
 	g.logPtr.Seek(0, 0)
 
 	// allow the previous items to be garbage collected
 	g.items = make(map[string]string)
+	g.itemsLock.Unlock()
 }

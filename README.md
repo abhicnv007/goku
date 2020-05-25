@@ -2,8 +2,9 @@
 
 ![Build Status](https://github.com/abhicnv007/goku/workflows/Test/badge.svg)
 [![Go Report](https://goreportcard.com/badge/github.com/abhicnv007/goku)](https://goreportcard.com/badge/github.com/abhicnv007/goku)
+![codecov](https://codecov.io/gh/abhicnv007/goku/branch/master/graph/badge.svg)](https://codecov.io/gh/abhicnv007/goku)
 
-Goku is a library written in Go to create a simple in-memory datastore that is persisted on disk.
+Goku is a library written in Go to create a simple threadsafe in-memory datastore that is persisted to disk.
 
 ## Usage
 
@@ -43,8 +44,17 @@ g = goku.New(".db") // load the data back from the file
 g.Get("foo") // bar
 ```
 
+## Benchmarks
+
+```bash
+goos: darwin
+goarch: amd64
+pkg: github.com/abhicnv007/goku
+BenchmarkAdd-12    	  275427	     19766 ns/op	   10483 B/op	       2 allocs/op
+BenchmarkGet-12    	44926000	       401 ns/op	       0 B/op	       0 allocs/op
+```
+
 ## TODO
 
-1. Test in multithreaded applications
-2. Allow for dump and restore
-3. Test file corruption
+1. Allow for dump and restore
+2. Test file corruption
