@@ -9,27 +9,45 @@ import (
 func TestNew(t *testing.T) {
 	dbPath := ".goku"
 	g := New(dbPath)
-	defer g.Clear()
 
 	g.Add("Q", "there")
 	g.Add("W", "here")
 	g.Add("E", "everywhere")
 
-	_, err := os.Stat(dbPath)
-	// file is supposed to exist
-	if os.IsNotExist(err) {
-		t.Errorf("Goku new, file not present after close")
-	}
-
-	g = New(dbPath)
 	if got := g.Count(); got != 3 {
 		t.Errorf("Goku New; expected 3, got %d", got)
 	}
+
+	// file is supposed to exist
+	_, err := os.Stat(dbPath)
+	if os.IsNotExist(err) {
+		t.Errorf("Goku New, datafile not present")
+	}
+
+	g.Close()
+
+	// file is still supposed to exist
+	f, err := os.Stat(dbPath)
+	t.Logf("The file is %d bytes long", f.Size())
+
+	if os.IsNotExist(err) {
+		t.Errorf("Goku New, datafile not present after close")
+	}
+
+	// open with the same datafile again
+	g = New(dbPath)
+	if got := g.Count(); got != 3 {
+		t.Errorf("Goku New; expected 3 after reload, got %d", got)
+	}
+
+	// g.Clear()
+	g.Close()
 }
 
 func TestAdd(t *testing.T) {
 	dbPath := ".goku"
 	g := New(dbPath)
+	defer g.Close()
 	defer g.Clear()
 
 	g.Add("Q", "there")
@@ -48,6 +66,7 @@ func TestAdd(t *testing.T) {
 func TestGet(t *testing.T) {
 	dbPath := ".goku"
 	g := New(dbPath)
+	defer g.Close()
 	defer g.Clear()
 
 	keys := []string{"A", "B", "C", "D"}
@@ -68,6 +87,8 @@ func TestGet(t *testing.T) {
 func TestClear(t *testing.T) {
 	dbPath := ".goku"
 	g := New(dbPath)
+	defer g.Close()
+
 	keys := []string{"A", "B", "C", "D"}
 	values := []string{"1", "2", "3", "4"}
 
@@ -79,11 +100,6 @@ func TestClear(t *testing.T) {
 
 	if c := g.Count(); c != 0 {
 		t.Errorf("Goku clear, expected 0 elements after clear, got %d", c)
-	}
-	_, err := os.Stat(dbPath)
-	// file is not supposed to exist
-	if !os.IsNotExist(err) {
-		t.Errorf("Goku clear, file not cleared")
 	}
 
 	keys = []string{"A", "B", "C", "D"}
@@ -100,6 +116,27 @@ func TestClear(t *testing.T) {
 
 }
 
+func TestGokuClose(t *testing.T) {
+	dbPath := ".goku"
+	g := New(dbPath)
+	keys := []string{"A", "B", "C", "D"}
+	values := []string{"1", "2", "3", "4"}
+
+	for i, k := range keys {
+		g.Add(k, values[i])
+	}
+
+	g.Clear()
+	g.Close()
+
+	// datafile not supposed to exist
+	_, err := os.Stat(dbPath)
+	if !os.IsNotExist(err) {
+		t.Errorf("Goku clear, datafile not cleared")
+	}
+
+}
+
 const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 func RandStringBytes(n int) string {
@@ -113,7 +150,9 @@ func RandStringBytes(n int) string {
 func BenchmarkAdd(b *testing.B) {
 	dbPath := ".goku"
 	g := New(dbPath)
+	defer g.Close()
 	defer g.Clear()
+
 	// create some random strings to be used as keys and values
 	randStrs := make([][]string, 0, b.N)
 	for i := 0; i < b.N; i++ {
@@ -124,11 +163,13 @@ func BenchmarkAdd(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		g.Add(randStrs[i][0], randStrs[i][1])
 	}
+
 }
 
 func BenchmarkGet(b *testing.B) {
 	dbPath := ".goku"
 	g := New(dbPath)
+	defer g.Close()
 	defer g.Clear()
 	// create some random strings to be used as keys and values
 	randStrs := make([][]string, 0, b.N)
