@@ -1,9 +1,10 @@
 package goku
 
 import (
-	pb "github.com/abhicnv007/goku/entry"
 	"os"
 	"testing"
+
+	pb "github.com/abhicnv007/goku/entry"
 )
 
 func TestWriteEntry(t *testing.T) {
@@ -48,8 +49,10 @@ func TestReadEntry(t *testing.T) {
 		Type:  pb.Entry_INSERT,
 	}
 	writeEntry(&e, f)
+	f.Close()
 
-	entries := readEntry(fname)
+	f, _ = os.Open(fname)
+	entries := readEntry(f)
 	if len(entries) != 2 {
 		t.Errorf("Read entry: expect 2, got %d", len(entries))
 	}
