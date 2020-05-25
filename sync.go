@@ -33,12 +33,7 @@ func writeEntry(entry *pb.Entry, f *os.File) {
 	}
 }
 
-func readEntry(fname string) []*pb.Entry {
-	f, err := os.Open(fname)
-	if err != nil {
-		log.Fatalln("Failed to open file:", err)
-	}
-	defer f.Close()
+func readEntry(f *os.File) []*pb.Entry {
 
 	sizeBuf := make([]byte, 4)
 	var entries []*pb.Entry
