@@ -23,10 +23,9 @@ func main() {
     if val, ok := g.Get("foo"); ok {
         // use val
         fmt.Println(val) // Output: bar
-    } 
+    }
 }
 ```
-
 
 ## How does it work?
 
@@ -44,10 +43,8 @@ g = goku.New(".db") // load the data back from the file
 g.Get("foo") // bar
 ```
 
-
 ## TODO
 
 1. Test in multithreaded applications
 2. Allow for dump and restore
 3. Test file corruption
-4. Lock the db file, preventing multiple instances from writing to the same file
