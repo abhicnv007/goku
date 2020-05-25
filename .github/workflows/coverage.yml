@@ -1,6 +1,6 @@
 on: ["push", "pull_request"]
 
-name: Test Coveralls
+name: Test Coverage
 
 jobs:
   build:
@@ -26,10 +26,10 @@ jobs:
         fi
     
     - name: Test
-      run: go test -v -coverprofile=profile.cov ./...
+      run: go test -v ./... -coverprofile=coverage.txt -covermode=atomic
 
-    - name: Coveralls
-      uses: coverallsapp/github-action@master
+    - name: Publish coverage
+      uses: codecov/codecov-action@v1.0.6
       with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        path-to-lcov: profile.cov
+        token: ${{secrets.CODECOV_TOKEN}}
+        file: ./coverage.txt
