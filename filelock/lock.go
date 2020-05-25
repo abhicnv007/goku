@@ -1,3 +1,4 @@
+// Package filelock implements a lock for mutually exclusive access of files
 package filelock
 
 import (
