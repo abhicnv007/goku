@@ -6,6 +6,7 @@ import (
 	"os"
 
 	pb "github.com/abhicnv007/goku/entry"
+	"github.com/abhicnv007/goku/filelock"
 )
 
 // Goku is the core data strcture of the library.
@@ -24,34 +25,27 @@ type Goku struct {
 //	g := goku.New(".goku_data")
 func New(dbPath string) Goku {
 	_, err := os.Stat(dbPath)
+
 	if os.IsNotExist(err) {
-		f, err := createFile(dbPath)
+		f, err := createDataFile(dbPath)
 		if err != nil {
 			log.Fatalln("Failed to create data file", dbPath, "Got error", err)
 		}
 		return Goku{items: make(map[string]string), dbPath: dbPath, logPtr: f}
 	}
 
-	entries := readEntry(dbPath)
-
-	f, err := openFile(dbPath)
+	// open the data file (file is opened in append mode)
+	f, err := openDataFile(dbPath)
 	if err != nil {
 		log.Fatalln("Failed to open file data file", dbPath, "Got error", err)
 	}
+	entries := readEntry(f)
 	return Goku{items: replayEntries(entries), dbPath: dbPath, logPtr: f}
 
 }
 
 // Add a key value pair to the Goku instance and also persists the operation to disk.
 func (g *Goku) Add(key string, value string) {
-
-	if g.logPtr == nil {
-		f, err := createFile(g.dbPath)
-		if err != nil {
-			log.Fatalln("Failed to create data file", g.dbPath, "Got error", err)
-		}
-		g.logPtr = f
-	}
 
 	g.items[key] = value
 
@@ -73,31 +67,35 @@ func (g *Goku) Count() int {
 	return len(g.items)
 }
 
-// Close all file handlers and free up memory
+// Close file handlers and remove lock files
 //
 // Example:
 //	g := goku.New(".db")
 //	defer g.Close()
 func (g *Goku) Close() {
-	if g.logPtr != nil {
-		g.logPtr.Close()
+	g.logPtr.Close()
+
+	// if there are no items, go ahead and delete the datafile
+	// else, just delete the lock file
+	if len(g.items) == 0 {
+		deleteDataFile(g.dbPath)
+	} else {
+		filelock.Release(g.dbPath)
 	}
+
 }
 
-// Clear deletes all elements and removes the log from disk.
+// Clear deletes all elements and truncates the log from disk.
 //
 // Example:
 //	g := goku.New(".db")
 //	defer g.Clear()
 func (g *Goku) Clear() {
-	// close the file pointer
-	g.Close()
-	g.logPtr = nil
 
-	// remove the contents of the file
-	if err := os.Remove(g.dbPath); err != nil {
-		log.Fatal("Could not remove file log file", g.dbPath, "; got error:", err)
-	}
+	// truncate the file
+	g.logPtr.Truncate(0)
+	g.logPtr.Seek(0, 0)
 
+	// allow the previous items to be garbage collected
 	g.items = make(map[string]string)
 }
