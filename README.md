@@ -2,7 +2,7 @@
 
 ![Build Status](https://github.com/abhicnv007/goku/workflows/Test/badge.svg)
 [![Go Report](https://goreportcard.com/badge/github.com/abhicnv007/goku)](https://goreportcard.com/badge/github.com/abhicnv007/goku)
-![codecov](https://codecov.io/gh/abhicnv007/goku/branch/master/graph/badge.svg)](https://codecov.io/gh/abhicnv007/goku)
+![codecov][(https://codecov.io/gh/abhicnv007/goku/branch/master/graph/badge.svg)](https://codecov.io/gh/abhicnv007/goku)
 
 Goku is a library written in Go to create a simple threadsafe in-memory datastore that is persisted to disk.
 
